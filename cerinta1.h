@@ -7,7 +7,10 @@ typedef struct graph {
     int **cost_matrix;
     int *parent_vector;
     int *visited_vector;
-    int *is_part_of_cycle;
     int nr_nodes;
 } Graph;
+typedef struct heap {
+    int *values;
+    int length;
+} Heap;
 #endif /* __FILE_H__ */
