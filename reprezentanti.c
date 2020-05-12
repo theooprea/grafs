@@ -46,7 +46,7 @@ void percolate_down(Heap *heap, int index_current, int *distance) {
     int aux = heap->values[index_current];
     heap->values[index_current] = heap->values[minimum_child_idx];
     heap->values[minimum_child_idx] = aux;
-    percolate_down(heap, minimum_child_idx, distance);       
+    percolate_down(heap, minimum_child_idx, distance);
 }
 void heap_pop(Heap *heap, int *distance) {
     heap->values[0] = heap->values[heap->length - 1];
@@ -102,8 +102,7 @@ void Dijkstra(Graph *graf, int start, int *distance, int *predecesori) {
                         predecesori[j] = vecin;
                         heap_push(min_heap, j, distance);
                     }
-                }
-                else {
+                } else {
                     distance[j] = distance[vecin] +
                     graf->cost_matrix[vecin][j];
                     predecesori[j] = vecin;
@@ -184,8 +183,7 @@ void free_rest(int **matrix, int rows, int *vector) {
     free(matrix);
     free(vector);
 }
-int main()
-{
+int main() {
     FILE *fisier_in, *fisier_out;
     fisier_in = fopen("reprezentanti.in", "r");
     fisier_out = fopen("reprezentanti.out", "w");
@@ -203,8 +201,7 @@ int main()
     for (i = 0; i < nr_reprezentanti; i++) {
         if (i == 0) {
             fscanf(fisier_in, "%d ", &reprezentanti[i]);
-        }
-        else {
+        } else {
             fscanf(fisier_in, "%d ", &reprezentanti[i]);
             add_edge_and_cost(graf, reprezentanti[0], reprezentanti[i], 0);
         }
@@ -213,14 +210,12 @@ int main()
     for (i = 1; i < graf->nr_nodes + 1; i++) {
         if (distance[i] == 0) {
             fprintf(fisier_out, "%d %d\n", i, 0);
-        }
-        else {
+        } else {
             if (distance[i] == INFINITY) {
                 fprintf(fisier_out, "%d\n", -1);
-            }
-            else {
+            } else {
                 fprintf(fisier_out, "%d %d\n", closest_reprezentant(distance,
-                predecesori, i), distance[i]);               
+                predecesori, i), distance[i]);
             }
         }
     }

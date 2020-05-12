@@ -111,7 +111,7 @@ int destination, int cost_sd, int cost_ds) {
         graf->adjacency_matrix[destination][source] = 1;
         graf->cost_matrix[source][destination] = 0;
         graf->cost_matrix[destination][source] = 0;
-        return; 
+        return;
     }
     graf->adjacency_matrix[source][destination] = 1;
     graf->adjacency_matrix[destination][source] = 1;
@@ -139,8 +139,7 @@ void free_graf(Graph *graf) {
     free(graf->cost_matrix);
     free(graf);
 }
-void DFS(Graph *graf, int start_node,int *cost_minim)
-{
+void DFS(Graph *graf, int start_node, int *cost_minim) {
     graf->visited_vector[start_node] = 1;
     int vecin;
     for (vecin = 0; vecin < graf->nr_nodes + 1; vecin++) {
@@ -169,8 +168,7 @@ void DFS(Graph *graf, int start_node,int *cost_minim)
         }
     }
 }
-int main()
-{
+int main() {
     FILE *fisier_in, *fisier_out;
     fisier_in = fopen("schimbare.in", "r");
     fisier_out = fopen("schimbare.out", "w");
