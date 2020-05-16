@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "./bonus.h"
+#include "./cerinta5.h"
 
 #define INFINITY 99999999
-Heap *make_heap() {
+Heap *make_heap(int nr_noduri) {
     Heap *new_heap = malloc(sizeof(Heap));
-    new_heap->values = malloc(10005 * sizeof(int));
+    new_heap->values = malloc(nr_noduri * sizeof(int));
     new_heap->length = 0;
     return new_heap;
 }
@@ -75,32 +75,22 @@ int is_in_queue(Heap *heap, int nod) {
     }
     return 0;
 }
-void add_edge_and_cost(Graph *graf, int source,
-int destination, int cost) {
-    graf->adjacency_matrix[source][destination] = 1;
-    graf->adjacency_matrix[destination][source] = 1;
-    graf->cost_matrix[source][destination] = cost;
-    graf->cost_matrix[destination][source] = cost;
-    graf->cost_matrix[source][source] = 0;
-    graf->cost_matrix[destination][destination] = 0;
-    graf->noduri[source].vecini[graf->noduri[source].nr_vecini] = destination;
-    graf->noduri[destination].vecini[graf->noduri[destination].nr_vecini]
-    = source;
-    graf->noduri[source].nr_vecini++;
-    graf->noduri[destination].nr_vecini++;
+int get_cost_a_to_b(Graph *graf, int a, int b) {
+    list_node *aux = graf->lista_adiacenta[a];
+    while (aux != NULL) {
+        if (aux->vecin == b)
+            return aux->cost;
+
+        aux = aux->next;
+    }
+    return INFINITY;
 }
-void remove_edge(Graph *graf, int source, int destination,
-int *cost) {
-    *cost = graf->cost_matrix[source][destination];
-    graf->adjacency_matrix[source][destination] = 0;
-    graf->adjacency_matrix[destination][source] = 0;
-    graf->cost_matrix[source][destination] = INFINITY;
-    graf->cost_matrix[destination][source] = INFINITY;
-}
-int Dijkstra(Graph *graf, int start, int destination, int *distance, int *selectat, Heap *min_heap) {
+int Dijkstra(Graph *graf, int start, int destination, int *distance,
+int *selectat, Heap *min_heap) {
     int i;
-    for (i = 1; i < graf->nr_nodes + 1; i++) {
-        distance[i] = graf->cost_matrix[start][i];
+    list_node *aux;
+    for (i = 1; i < graf->nr_noduri + 1; i++) {
+        distance[i] = INFINITY;
         selectat[i] = 0;
     }
     selectat[start] = 1;
@@ -110,129 +100,129 @@ int Dijkstra(Graph *graf, int start, int destination, int *distance, int *select
         int vecin = min_heap->values[0];
         selectat[vecin] = 1;
         heap_pop(min_heap, distance);
-        for (i = 0; i < graf->noduri[vecin].nr_vecini; i++) {
-            if (selectat[graf->noduri[vecin].vecini[i]] == 0 &&
-            distance[graf->noduri[vecin].vecini[i]] >= distance[vecin] &&
-            distance[graf->noduri[vecin].vecini[i]] >=
-            graf->cost_matrix[vecin][graf->noduri[vecin].vecini[i]]) {
-                distance[graf->noduri[vecin].vecini[i]] =
-                maxim(distance[vecin],
-                graf->cost_matrix[vecin][graf->noduri[vecin].vecini[i]]);
-                if (is_in_queue(min_heap,
-                graf->noduri[vecin].vecini[i]) == 1) {
-                    decrease_priority(min_heap,
-                    graf->noduri[vecin].vecini[i], distance);
+        aux = graf->lista_adiacenta[vecin];
+        while (aux != NULL) {
+            if (selectat[aux->vecin] == 0 && distance[aux->vecin] >=
+            distance[vecin] && distance[aux->vecin] >=
+            get_cost_a_to_b(graf, vecin, aux->vecin)) {
+                distance[aux->vecin] = maxim(distance[vecin],
+                get_cost_a_to_b(graf, vecin, aux->vecin));
+                if (is_in_queue(min_heap, aux->vecin) == 1) {
+                    decrease_priority(min_heap, aux->vecin, distance);
                 } else {
-                    heap_push(min_heap, graf->noduri[vecin].vecini[i],
-                    distance);
+                    heap_push(min_heap, aux->vecin, distance);
                 }
             }
+            aux = aux->next;
         }
     }
     return distance[destination];
 }
-Graph *make_graph(int nr_nodes) {
-    Graph *new_graf = malloc(sizeof(Graph));
-    int i, j;
-    new_graf->nr_nodes = nr_nodes;
-    new_graf->adjacency_matrix = malloc((nr_nodes + 1) * sizeof(int *));
-    new_graf->cost_matrix = malloc((nr_nodes + 1) * sizeof(int *));
-    new_graf->noduri = malloc((nr_nodes + 1) * sizeof(Nod));
+Graph *new_graf(int nr_nodes) {
+    int i;
+    Graph *graf = malloc(sizeof(Graph));
+    graf->nr_noduri = nr_nodes;
+    graf->lista_adiacenta = malloc((nr_nodes + 1) * sizeof(list_node *));
     for (i = 0; i < nr_nodes + 1; i++) {
-        new_graf->adjacency_matrix[i] = malloc((nr_nodes + 1) * sizeof(int));
-        new_graf->cost_matrix[i] = malloc((nr_nodes + 1) * sizeof(int));
-        new_graf->noduri[i].nr_nod = i;
-        new_graf->noduri[i].nr_vecini = 0;
-        new_graf->noduri[i].vecini = malloc(nr_nodes * sizeof(int));
-        for (j = 0; j < nr_nodes + 1; j++) {
-            new_graf->adjacency_matrix[i][j] = 0;
-            new_graf->cost_matrix[i][j] = INFINITY;
-        }
+        graf->lista_adiacenta[i] = NULL;
     }
-    return new_graf;
+    return graf;
+}
+list_node *new_node(int nr_nod, int cost) {
+    list_node *nod = malloc(sizeof(list_node));
+    nod->next = NULL;
+    nod->prev = NULL;
+    nod->cost = cost;
+    nod->vecin = nr_nod;
+    return nod;
+}
+void add_in_list(list_node **head, list_node *nod) {
+    if ((*head) == NULL) {
+        (*head) = nod;
+    } else {
+        nod->next = (*head);
+        (*head)->prev = nod;
+        (*head) = nod;
+    }
+}
+void add_edge(Graph *graf, int source, int destination, int cost) {
+    list_node *nod_source_to_destination = new_node(destination, cost);
+    add_in_list(&graf->lista_adiacenta[source], nod_source_to_destination);
+    list_node *nod_destination_to_source = new_node(source, cost);
+    add_in_list(&graf->lista_adiacenta[destination],
+    nod_destination_to_source);
+}
+void print_lists(Graph *graf) {
+    int i;
+    list_node *aux;
+    for (i = 1; i < graf->nr_noduri + 1; i++) {
+        printf("%d -> ", i);
+        if (graf->lista_adiacenta[i] != NULL) {
+            aux = graf->lista_adiacenta[i];
+            while (aux != NULL) {
+                printf("(%d %d) ", aux->vecin, aux->cost);
+                aux = aux->next;
+            }
+        }
+        printf("\n");
+    }
+}
+void free_list(list_node *head) {
+    list_node *aux;
+    while (head != NULL) {
+        aux = head;
+        head = head->next;
+        free(aux);
+    }
 }
 void free_graf(Graph *graf) {
     int i;
-    for (i = 0; i < graf->nr_nodes + 1; i++) {
-        free(graf->adjacency_matrix[i]);
-        free(graf->cost_matrix[i]);
-        free(graf->noduri[i].vecini);
+    for (i = 0; i < graf->nr_noduri + 1; i++) {
+        free_list(graf->lista_adiacenta[i]);
     }
-    free(graf->noduri);
-    free(graf->adjacency_matrix);
-    free(graf->cost_matrix);
+    free(graf->lista_adiacenta);
     free(graf);
-}
-void print_graf_matrixes(Graph *graf) {
-    int i, j;
-    printf("matricea de adiacenta:\n");
-    for (i = 1; i < graf->nr_nodes + 1; i++) {
-        for (j = 1; j < graf->nr_nodes + 1; j++) {
-            printf("%d ", graf->adjacency_matrix[i][j]);
-        }
-        printf("\n");
-    }
-    printf("matricea de costuri:\n");
-    for (i = 1; i < graf->nr_nodes + 1; i++) {
-        for (j = 1; j < graf->nr_nodes + 1; j++) {
-            printf("%d ", graf->cost_matrix[i][j]);
-        }
-        printf("\n");
-    }
-}
-void print_neighbours(Graph *graf) {
-    int i, j;
-    for (i = 1; i < graf->nr_nodes + 1; i++) {
-        printf("%d -> ", i);
-        for (j = 0; j < graf->noduri[i].nr_vecini; j++) {
-            printf("%d ", graf->noduri[i].vecini[j]);
-        }
-        printf("\n");
-    }
 }
 int main() {
     FILE *fisier_in, *fisier_out;
-    fisier_in = fopen("bonus6.in", "r");
+    fisier_in = fopen("bonus.in", "r");
     fisier_out = fopen("bonus.out", "w");
-    int nr_nodes, nr_vertices, i, source, destination, cost, nr_query, *selected, **new_matrix, *did_Dijkstra;
-    fscanf(fisier_in, "%d %d %d", &nr_nodes, &nr_vertices, &nr_query);
-    Graph *graf = make_graph(nr_nodes);
-    for (i = 0; i < nr_vertices; i++) {
+    int nr_nodes, nr_edges, source, destination, cost, nr_query, i,
+    *selectat, **new_matrix, *did_Dijkstra;
+    fscanf(fisier_in, "%d %d %d", &nr_nodes, &nr_edges, &nr_query);
+    Graph *graf = new_graf(nr_nodes);
+    for (i = 0; i < nr_edges; i++) {
         fscanf(fisier_in, "%d %d %d", &source, &destination, &cost);
-        add_edge_and_cost(graf, source, destination, cost);
+        add_edge(graf, source, destination, cost);
     }
     new_matrix = malloc((nr_nodes + 1) * sizeof(int *));
-    selected = malloc((nr_nodes + 1) * sizeof(int));
-    Heap *min_heap = make_heap();
+    for (i = 0; i < nr_nodes + 1; i++) {
+        new_matrix[i] = malloc((nr_nodes + 1) * sizeof(int));
+    }
+    selectat = malloc((nr_nodes + 1) * sizeof(int));
+    Heap *min_heap = make_heap(nr_nodes);
     did_Dijkstra = calloc(nr_nodes + 1, sizeof(int));
     for (i = 0; i < nr_query; i++) {
         fscanf(fisier_in, "%d %d", &source, &destination);
-        if (did_Dijkstra[source] == 1 || did_Dijkstra[destination] == 1)
-        {
-            if(did_Dijkstra[source] == 1)
-            {
+        if (did_Dijkstra[source] == 1 || did_Dijkstra[destination] == 1) {
+            if (did_Dijkstra[source] == 1) {
                 fprintf(fisier_out, "%d\n", new_matrix[source][destination]);
-            }
-            else
-            {
+            } else {
                 fprintf(fisier_out, "%d\n", new_matrix[destination][source]);
             }
-        }
-        else
-        {
-            new_matrix[source] = malloc((nr_nodes + 1) * sizeof(int));
+        } else {
             did_Dijkstra[source] = 1;
-            fprintf(fisier_out, "%d\n", Dijkstra(graf, source, destination, new_matrix[source], selected, min_heap));            
+            fprintf(fisier_out, "%d\n", Dijkstra(graf, source, destination,
+            new_matrix[source], selectat, min_heap));
         }
     }
-    for(i = 0; i < nr_nodes + 1; i++)
-    {
+    for (i = 0; i < nr_nodes + 1; i++) {
         free(new_matrix[i]);
     }
     free(did_Dijkstra);
     free(new_matrix);
     free_graf(graf);
-    free(selected);
+    free(selectat);
     free(min_heap->values);
     free(min_heap);
     fclose(fisier_in);
