@@ -129,8 +129,7 @@ int Dijkstra(Graph *graf, int start, int destination, int *distance, int *select
             }
         }
     }
-    int distanta = distance[destination];
-    return distanta;
+    return distance[destination];
 }
 Graph *make_graph(int nr_nodes) {
     Graph *new_graf = malloc(sizeof(Graph));

@@ -66,6 +66,22 @@ int closest_reprezentant(int *distance, int *predecesori, int nod) {
     }
     return aux;
 }
+void decrease_priority(Heap *heap, int nod, int *distance) {
+    int i;
+    for (i = 0; i < heap->length; i++) {
+        if (heap->values[i] == nod) {
+            precolate_up(heap, i, distance);
+        }
+    }
+}
+int is_in_queue(Heap *heap, int nod) {
+    int i;
+    for (i = 0; i < heap->length; i++) {
+        if (heap->values[i] == nod)
+            return 1;
+    }
+    return 0;
+}
 void Dijkstra(Graph *graf, int start, int *distance, int *predecesori) {
     Heap *min_heap = make_heap();
     int *selectat = malloc(10000 * sizeof(int));
@@ -91,7 +107,11 @@ void Dijkstra(Graph *graf, int start, int *distance, int *predecesori) {
                         distance[j] = distance[vecin] +
                         graf->cost_matrix[vecin][j];
                         predecesori[j] = vecin;
-                        heap_push(min_heap, j, distance);
+                        if (is_in_queue(min_heap, j) == 1) {
+                            decrease_priority(min_heap, j, distance);
+                        } else {
+                            heap_push(min_heap, j, distance);
+                        }
                     }
                     int predj = closest_reprezentant(distance, predecesori, j);
                     int predvecin = closest_reprezentant(distance,
@@ -100,13 +120,21 @@ void Dijkstra(Graph *graf, int start, int *distance, int *predecesori) {
                         distance[j] = distance[vecin] +
                         graf->cost_matrix[vecin][j];
                         predecesori[j] = vecin;
-                        heap_push(min_heap, j, distance);
+                        if (is_in_queue(min_heap, j) == 1) {
+                            decrease_priority(min_heap, j, distance);
+                        } else {
+                            heap_push(min_heap, j, distance);
+                        }
                     }
                 } else {
                     distance[j] = distance[vecin] +
                     graf->cost_matrix[vecin][j];
                     predecesori[j] = vecin;
-                    heap_push(min_heap, j, distance);
+                    if (is_in_queue(min_heap, j) == 1) {
+                        decrease_priority(min_heap, j, distance);
+                    } else {
+                        heap_push(min_heap, j, distance);
+                    }
                 }
             }
         }

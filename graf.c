@@ -86,12 +86,9 @@ int get_cost_a_to_b(Graph *graf, int a, int b)
     }
     return INFINITY;
 }
-int Dijkstra(Graph *graf, int start, int destination) {
+int Dijkstra(Graph *graf, int start, int destination, int *distance, int *selectat, Heap *min_heap) {
     int i;
     list_node *aux;
-    Heap *min_heap = make_heap(graf->nr_noduri + 1);
-    int *selectat = malloc((graf->nr_noduri + 1) * sizeof(int));
-    int *distance = malloc((graf->nr_noduri + 1) * sizeof(int));
     for (i = 1; i < graf->nr_noduri + 1; i++) {
         distance[i] = INFINITY;
         selectat[i] = 0;
@@ -122,12 +119,7 @@ int Dijkstra(Graph *graf, int start, int destination) {
             aux = aux->next;
         }
     }
-    int distanta = distance[destination];
-    free(min_heap->values);
-    free(selectat);
-    free(distance);
-    free(min_heap);
-    return distanta;
+    return distance[destination];
 }
 Graph *new_graf(int nr_nodes)
 {
@@ -212,9 +204,9 @@ void free_graf(Graph *graf)
 int main()
 {
     FILE *fisier_in, *fisier_out;
-    fisier_in = fopen("bonus7.in", "r");
+    fisier_in = fopen("bonus.in", "r");
     fisier_out = fopen("bonus.out", "w");
-    int nr_nodes, nr_edges, source, destination, cost, nr_query, i;
+    int nr_nodes, nr_edges, source, destination, cost, nr_query, i, *selectat, **new_matrix, *did_Dijkstra;
     fscanf(fisier_in, "%d %d %d", &nr_nodes, &nr_edges, &nr_query);
     Graph *graf = new_graf(nr_nodes);
     for (i = 0; i < nr_edges; i++)
@@ -222,11 +214,18 @@ int main()
         fscanf(fisier_in, "%d %d %d", &source, &destination, &cost);
         add_edge(graf, source, destination, cost);
     }
+    new_matrix = malloc((nr_nodes + 1) * sizeof(int *));
+    for(i = 0; i < nr_nodes + 1; i++)
+    {
+        new_matrix[i] = malloc((nr_nodes + 1) * sizeof(int));
+    }
+    selectat = malloc((nr_nodes + 1) * sizeof(int));
+    Heap *min_heap = make_heap(nr_nodes);
+    did_Dijkstra = calloc(nr_nodes + 1, sizeof(int));
     for (i = 0; i < nr_query; i++)
     {
         fscanf(fisier_in, "%d %d", &source, &destination);
-        fprintf(fisier_out, "%d\n", Dijkstra(graf, source, destination));
-        /*if (did_Dijkstra[source] == 1 || did_Dijkstra[destination] == 1)
+        if (did_Dijkstra[source] == 1 || did_Dijkstra[destination] == 1)
         {
             if(did_Dijkstra[source] == 1)
             {
@@ -239,12 +238,20 @@ int main()
         }
         else
         {
-            //new_matrix[source] = malloc((nr_nodes + 1) * sizeof(int));
             did_Dijkstra[source] = 1;
             fprintf(fisier_out, "%d\n", Dijkstra(graf, source, destination, new_matrix[source], selectat, min_heap));            
-        }*/
+        }
     }
+    for(i = 0; i < nr_nodes + 1; i++)
+    {
+        free(new_matrix[i]);
+    }
+    free(did_Dijkstra);
+    free(new_matrix);
     free_graf(graf);
+    free(selectat);
+    free(min_heap->values);
+    free(min_heap);
     fclose(fisier_in);
     fclose(fisier_out);
     return 0;

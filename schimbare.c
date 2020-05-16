@@ -170,7 +170,7 @@ void DFS(Graph *graf, int start_node, int *cost_minim) {
 }
 int main() {
     FILE *fisier_in, *fisier_out;
-    fisier_in = fopen("schimbare.in", "r");
+    fisier_in = fopen("schimbare10.in", "r");
     fisier_out = fopen("schimbare.out", "w");
     int nr_nodes, nr_vertices, i, source, destination, cost;
     fscanf(fisier_in, "%d %d", &nr_nodes, &nr_vertices);
